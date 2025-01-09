@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Josh Fayer's Cookbook</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+
+    <style>
+      .spacer {
+        height: 20px;
+      }
+
+      .alert-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 10px;
+      }
+
+      .alert {
+        background-color: #f44336;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      @media print {
+        .noprint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    {% if message %}
+    <div class="alert-container">
+      <div class="alert">
+        {{ message }}
+      </div>
+    </div>
+    {% endif %}
+    <nav class="container noprint">
+      <ul>
+        <li><strong>Josh Fayer's Cookbook</strong></li>
+      </ul>
+      <ul>
+        <li><a href="/">Home</a></li>
+        {% if accessToken %}
+        <li><a href="/add">Add</a></li>
+        {% else %}
+        <li><a href="/login">Login</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% block content %}{% endblock %}
+  </body>
+
+  <script type="module">
+    import {
+      LitElement,
+      html,
+    } from 'https://cdn.jsdelivr.net/gh/lit/dist@3/core/lit-core.min.js';
+
+    class CooklangRenderer extends LitElement {
+      // displays a side-by-side textarea and div, with a button to render the text.
+      // on button click, send a POST request to /cook/from-text with the text in the textarea
+      // and render the response in the div according to the same rules as the recipe.html template
+
+      static properties = {
+        text: { type: String, attribute: 'value' },
+        rendered: { type: String },
+      };
+
+      constructor() {
+        super();
+        this.text = '';
+        this.rendered = { ingredients: [], steps: [] };
+      }
+
+      createRenderRoot() {
+        return this;
+      }
+
+      firstUpdated() {
+        if(this.text) {
+          this.onRender();
+        }
+      }
+
+      render() {
+        return html`
+          <div class="container grid">
+            <div class="left">
+              <textarea name="body" @blur=${this.onRender} @input=${this.onInput} style="height: 100%; min-height: 300px">${this.text}</textarea>
+            </div>
+            <div class="right">
+              <div>
+                <details open>
+                  <summary>Ingredients:</summary>
+                  <ul>
+                    ${this.rendered.ingredients.map(
+                      (ingredient) => html`
+                        <li>
+                          ${ingredient.quantity
+                            ? html`${ingredient.quantity} `
+                            : ''}
+                          ${ingredient.units ? html`${ingredient.units} ` : ''}
+                          ${ingredient.name}
+                        </li>
+                      `,
+                    )}
+                  </ul>
+                </details>
+              </div>
+
+              <div>
+                <p>Instructions:</p>
+                <ol>
+                  ${this.rendered.steps.map(
+                    (step) => html`
+                      <li>
+                        ${step.map((item) =>
+                          item.type === "timer"
+                          ? html`${item.quantity} ${item.value} ${item.units}`
+                          : html`${item.value} ${item.name}`
+                        )}
+                      </li>
+                    `,
+                  )}
+                </ol>
+              </div>
+            </div>
+          </div>
+          <a href="#" @click=${this.onRender} style="margin: 10px auto; display: block;">Preview</a>
+        `;
+      }
+
+      onInput(e) {
+        this.text = e.target.value;
+      }
+
+      async onRender() {
+        const response = await fetch('/cook/from-text', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: this.text }),
+        });
+        const data = await response.json();
+        this.rendered = data;
+      }
+    }
+
+    customElements.define('cooklang-renderer', CooklangRenderer);
+  </script>
+
+  <script>
+    // when a web request is received with a non-200 status code,
+    // render the message in a toast
+    window.addEventListener('fetch-error', function (event) {
+      event.preventDefault();
+      const message = event.detail.message;
+      alert(message);
+    });
+  </script>
+</html>

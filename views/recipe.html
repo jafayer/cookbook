@@ -1,0 +1,60 @@
+{% extends 'base.html' %} {% block content %}
+<div class="spacer"></div>
+<div class="container noprint">
+  <a href="/">&larr; Back to home</a>
+</div>
+<div class="spacer"></div>
+<div class="container">
+  <h1>{{ title }}</h1>
+  <p>{{ description }}</p>
+  {% if sourceUrl %}
+  <p class="noprint"><a href="{{sourceUrl}}">Source</a></p>
+  {% endif %}
+  <p class="noprint">Created on: {{ creationDate }}</p>
+  <div>
+    <details open>
+      <summary>Ingredients:</summary>
+      <ul>
+        {% for ingredient in ingredients %}
+        <li>
+          {% if ingredient.quantity %}{{ ingredient.quantity }} {% endif %}{% if
+          ingredient.units %}{{ ingredient.units }} {% endif %}{{
+          ingredient.name }}
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+  </div>
+
+  <div>
+    <p>Instructions:</p>
+    <ol>
+      {% for step in steps %}
+      <li>
+        <input type="checkbox" >{% for item in step %}{% if item.type == "timer" %} {{ item.quantity }}{%endif%}{{ item.value}}{%if item.type == "timer"%} {{ item.units }}{% endif %}{{ item.name }}{% endfor %}</input>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="noprint">
+    <a href="/cook/download/{{id}}">Download Recipe as Cooklang</a>
+  </div>
+  {% if accessToken %}
+  <div class="noprint">
+    <a href="/cook/{{id}}/edit">Edit Recipe</a>
+  </div>
+  {% endif %}
+  <div class="spacer"></div>
+</div>
+
+<script>
+  window.addEventListener('keydown', async function (event) {
+    switch (event.key) {
+      case 'e': {
+        window.location.href = '/cook/{{id}}/edit';
+        break;
+      }
+    }
+  });
+</script>
+{% endblock %}

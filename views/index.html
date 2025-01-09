@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='container'>
+  <div class="spacer"></div>
+  <h1>Cookbook</h1>
+  <ul>
+    {% for recipe in recipes %}
+      <li>
+        <a href='/cook/{{ recipe.id }}'>{{ recipe.title }}</a> - 
+        <small>{{recipe.description}}</small>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
