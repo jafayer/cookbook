@@ -1,8 +1,9 @@
 {
-  "name": "nest-cooklang",
+  "name": "cookbook",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A cookbook site to store my cooklang recipes",
+  "categories": ["cooklang", "recipes"],
+  "author": "jafayer",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
